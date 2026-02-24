@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}JD Analyzer - Resume Creator & ATS Score Checker{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6">
+            <a href="/"
+                class="inline-flex items-center text-gray-300 hover:text-white transition-colors bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg backdrop-blur-sm">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Home
+            </a>
+        </div>
+        <h1 class="text-3xl font-bold text-white mb-4 text-center header-font">
+            <i class="fas fa-search-dollar text-green-400 mr-2"></i>
+            Job Description Analyzer
+        </h1>
+        <p class="text-center text-gray-200 mb-8">
+            Paste a Job Description below to extract key skills, qualifications, and understand the role's core
+            requirements.
+        </p>
+
+        <div class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-8">
+            <form action="/analyze-jd" method="POST" id="analyzeJDForm">
+                <div class="mb-4">
+                    <label class="block text-white font-bold mb-2">Paste Job Description</label>
+                    <textarea name="job_description" id="job_description"
+                        class="w-full h-64 p-4 rounded-lg border border-gray-400/50 bg-white/5 text-white placeholder-gray-400 focus:ring-2 focus:ring-amber-500 focus:outline-none font-mono text-sm resize-none"
+                        placeholder="Paste the full job description here..." required></textarea>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit"
+                        class="w-full btn-classic text-white font-bold py-3 px-6 rounded-lg brand-font" id="analyzeBtn">
+                        <span id="btnText"><i class="fas fa-search-dollar mr-2"></i> Analyze Description</span>
+                        <span id="loadingText" class="hidden"><i class="fas fa-spinner fa-spin mr-2"></i>
+                            Analyzing...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const form = document.getElementById('analyzeJDForm');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const btnText = document.getElementById('btnText');
+    const loadingText = document.getElementById('loadingText');
+
+    // Form submission
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const jobDesc = document.getElementById('job_description').value;
+
+        if (!jobDesc) {
+            alert('Please paste a job description.');
+            return;
+        }
+
+        // Show loading state
+        analyzeBtn.disabled = true;
+        analyzeBtn.classList.add('opacity-75', 'cursor-not-allowed');
+        btnText.classList.add('hidden');
+        loadingText.classList.remove('hidden');
+
+        const formData = new FormData();
+        formData.append('job_description', jobDesc);
+
+        try {
+            const response = await fetch('/analyze-jd', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error occurred'));
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            // Reset loading state
+            analyzeBtn.disabled = false;
+            analyzeBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            btnText.classList.remove('hidden');
+            loadingText.classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %}

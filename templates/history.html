@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}History - Smart Resume AI{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold text-white brand-font">
+        Document History
+      </h1>
+      <a href="/dashboard" class="text-gray-400 hover:text-white transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+      </a>
+    </div>
+
+    <div class="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden shadow-xl">
+      {% if history %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-white/5 border-b border-white/10 text-gray-300 text-sm uppercase tracking-wider">
+              <th class="px-6 py-4 font-semibold">Document</th>
+              <th class="px-6 py-4 font-semibold">Type</th>
+              <th class="px-6 py-4 font-semibold">Date Created</th>
+              <th class="px-6 py-4 font-semibold text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/10">
+            {% for item in history %}
+            <tr class="hover:bg-white/5 transition-colors">
+              <td class="px-6 py-4">
+                <div class="flex items-center">
+                  <div class="p-2 rounded bg-amber-500/10 text-amber-500 mr-3">
+                    <i class="fas fa-file-pdf"></i>
+                  </div>
+                  <span class="text-white font-medium">{{ item.title }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span
+                  class="px-2 py-1 text-xs font-semibold rounded-full 
+                                        {{ 'bg-blue-500/20 text-blue-300' if item.doc_type == 'cv' else 'bg-green-500/20 text-green-300' }}">
+                  {{ item.doc_type|upper }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-gray-400 text-sm">
+                {{ item.created_at }}
+              </td>
+              <td class="px-6 py-4 text-right">
+                <a href="/download/{{ item.filename }}"
+                  class="text-amber-400 hover:text-amber-300 font-medium inline-flex items-center">
+                  <i class="fas fa-download mr-1"></i> Download
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="p-12 text-center">
+        <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-history text-2xl text-gray-500"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">No History Verification</h3>
+        <p class="text-gray-400 mb-6">You haven't generated any documents yet.</p>
+        <a href="/dashboard" class="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors">
+          Create Your First Resume
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

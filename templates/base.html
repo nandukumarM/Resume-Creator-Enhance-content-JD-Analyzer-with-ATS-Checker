@@ -1,0 +1,526 @@
+<!-- ==================== templates/base.html ==================== -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Resume Creator & ATS Score Checker{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/png">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js for visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Google Fonts: Playfair Display & Lato -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      /* Classic & Attractive Palette */
+      --primary: #0f172a;
+      /* Deep Navy / Slate 900 */
+      --secondary: #334155;
+      /* Slate 700 */
+      --accent: #b45309;
+      /* Bronze / Amber 700 */
+      --light-bg: #f8fafc;
+      /* Slate 50 */
+      --text-main: #1e293b;
+      /* Slate 800 */
+    }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      color: var(--text-main);
+
+      /* User Requested Palette: #080B38 (Deep Blue), #36195B (Deep Purple), #522377 (Violet) */
+      background-color: #080B38;
+      background-image: linear-gradient(135deg, #080B38 0%, #36195B 50%, #522377 100%);
+      background-attachment: fixed;
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    .brand-font {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .gradient-bg {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-bottom: 3px solid var(--accent);
+    }
+
+    .dark-mode {
+      background-color: #0f172a;
+      color: #e2e8f0;
+      background-image: none;
+      /* Clean dark mode without texture */
+    }
+
+    .dark-mode .card {
+      background-color: #2d3748;
+      border-color: #4a5568;
+    }
+
+    .score-circle {
+      position: relative;
+      width: 200px;
+      height: 200px;
+    }
+
+    .btn-classic {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      border: 1px solid var(--primary);
+      color: #ffffff;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.3);
+      /* Shadow from Slate-900 */
+    }
+
+    .btn-classic:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.4);
+      border-color: var(--accent);
+    }
+
+    .btn-classic::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: 0.5s;
+    }
+
+    .btn-classic:hover::after {
+      left: 100%;
+    }
+
+    .btn-classic-accent {
+      background: linear-gradient(135deg, var(--accent) 0%, #92400e 100%);
+      /* Bronze to Dark Amber */
+      border: 1px solid var(--accent);
+    }
+
+    .btn-classic-brown {
+      background: linear-gradient(135deg, #a16207 0%, #713f12 100%);
+      /* Yellow-700 to Yellow-900 (Brownish) */
+      border: 1px solid #ca8a04;
+    }
+
+    .text-classic-accent {
+      color: var(--accent);
+    }
+
+    /* Input Styling */
+    input,
+    textarea,
+    select {
+      border-color: #cbd5e1 !important;
+      /* Slate 300 */
+      font-family: 'Lato', sans-serif;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.2) !important;
+      /* Bronze glow */
+    }
+
+    .dark-mode .btn-classic {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-out;
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body class="bg-gray-50" id="body">
+  <!-- Navigation -->
+  <nav class="gradient-bg shadow-lg">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex justify-between items-center">
+        <a href="/" class="text-white text-xl font-bold flex items-center">
+          <i class="fas fa-robot mr-2"></i>
+          Resume Creator & ATS Score Checker
+        </a>
+        <div class="flex items-center space-x-4">
+          {% if session.get('user') %}
+          <a href="/dashboard" class="text-white hover:text-gray-200">
+            <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
+          </a>
+          {% endif %}
+          <a href="/tips" class="text-white hover:text-gray-200">
+            <i class="fas fa-lightbulb mr-1"></i> Tips
+          </a>
+          <a href="/analyze-jd" class="text-white hover:text-gray-200">
+            <i class="fas fa-search-dollar mr-1"></i> JD Analyzer
+          </a>
+          <a href="/enhance-content" class="text-white hover:text-gray-200">
+            <i class="fas fa-pen-fancy mr-1"></i> Enhancer
+          </a>
+          {% if session.get('user') %}
+          <a href="/logout" class="text-red-400 hover:text-red-300 ml-4 font-semibold">
+            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+          </a>
+          {% else %}
+          <a href="/login" class="text-white hover:text-amber-400 ml-4 font-semibold">
+            <i class="fas fa-sign-in-alt mr-1"></i> Login
+          </a>
+          <a href="/register"
+            class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-full font-bold transition-colors shadow-lg">
+            <i class="fas fa-user-plus mr-1"></i> Register
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>{% block content %}{% endblock %}</main>
+
+  <!-- Feedback Section -->
+  <section class="bg-white py-8 border-t border-gray-200">
+    <div class="container mx-auto px-4 max-w-2xl text-center">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">We value your feedback!</h3>
+      <p class="text-gray-600 mb-6">Help us improve your experience.</p>
+
+      <div id="feedback-form" class="space-y-4">
+        <div class="flex justify-center space-x-2 text-3xl mb-4">
+          <button onclick="setRating(1)" class="star-rating text-gray-300 hover:text-yellow-400 transition-colors"
+            data-rating="1"><i class="fas fa-star"></i></button>
+          <button onclick="setRating(2)" class="star-rating text-gray-300 hover:text-yellow-400 transition-colors"
+            data-rating="2"><i class="fas fa-star"></i></button>
+          <button onclick="setRating(3)" class="star-rating text-gray-300 hover:text-yellow-400 transition-colors"
+            data-rating="3"><i class="fas fa-star"></i></button>
+          <button onclick="setRating(4)" class="star-rating text-gray-300 hover:text-yellow-400 transition-colors"
+            data-rating="4"><i class="fas fa-star"></i></button>
+          <button onclick="setRating(5)" class="star-rating text-gray-300 hover:text-yellow-400 transition-colors"
+            data-rating="5"><i class="fas fa-star"></i></button>
+        </div>
+
+        <textarea id="feedback-comment" rows="3"
+          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Tell us what you think (optional)..."></textarea>
+
+        <button onclick="submitFeedback()"
+          class="w-full btn-classic text-white font-medium py-2 px-6 rounded-lg brand-font">
+          Submit Feedback
+        </button>
+      </div>
+
+      <div id="feedback-success" class="hidden text-green-600 font-medium p-4 bg-green-50 rounded-lg">
+        <i class="fas fa-check-circle mr-2"></i> Thank you for your feedback!
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="gradient-bg text-white mt-0 py-6">
+    <div class="container mx-auto px-4 text-center">
+      <p>&copy; 2025 Resume Creator & ATS Score Checker. All rights reserved.</p>
+      <p class="text-sm mt-2">Powered by Google Gemini AI</p>
+    </div>
+  </footer>
+
+  <script>
+    // Dark mode toggle
+    function toggleDarkMode() {
+      const body = document.getElementById("body");
+      const icon = document.getElementById("darkModeIcon");
+      body.classList.toggle("dark-mode");
+
+      if (body.classList.contains("dark-mode")) {
+        icon.classList.remove("fa-moon");
+        icon.classList.add("fa-sun");
+        localStorage.setItem("darkMode", "enabled");
+      } else {
+        icon.classList.remove("fa-sun");
+        icon.classList.add("fa-moon");
+        localStorage.setItem("darkMode", "disabled");
+      }
+    }
+
+    // Load dark mode preference
+    document.addEventListener("DOMContentLoaded", function () {
+      if (localStorage.getItem("darkMode") === "enabled") {
+        document.getElementById("body").classList.add("dark-mode");
+        document.getElementById("darkModeIcon").classList.remove("fa-moon");
+        document.getElementById("darkModeIcon").classList.add("fa-sun");
+      }
+    });
+
+    // ==========================================
+    // CHATBOT FUNCTIONALITY
+    // ==========================================
+
+    function toggleChat() {
+      const chatWindow = document.getElementById('chat-window');
+      const chatIcon = document.getElementById('chat-icon');
+
+      if (chatWindow.classList.contains('hidden')) {
+        chatWindow.classList.remove('hidden');
+        chatIcon.classList.remove('fa-comment');
+        chatIcon.classList.add('fa-times');
+        // Focus input
+        setTimeout(() => document.getElementById('chat-input').focus(), 100);
+      } else {
+        chatWindow.classList.add('hidden');
+        chatIcon.classList.remove('fa-times');
+        chatIcon.classList.add('fa-comment');
+      }
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      const messagesDiv = document.getElementById('chat-messages');
+
+      if (!message) return;
+
+      // Add user message
+      appendMessage('user', message);
+      input.value = '';
+
+      // Add loading indicator
+      const loadingId = 'loading-' + Date.now();
+      const loadingHtml = `
+            <div id="${loadingId}" class="flex justify-start mb-4">
+                <div class="bg-gray-200 text-gray-700 rounded-lg py-2 px-4 rounded-bl-none">
+                    <i class="fas fa-circle-notch fa-spin mr-2"></i> Thinking...
+                </div>
+            </div>
+        `;
+      messagesDiv.insertAdjacentHTML('beforeend', loadingHtml);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ message: message }),
+        });
+
+        const data = await response.json();
+
+        // Remove loading
+        document.getElementById(loadingId).remove();
+
+        if (data.error) {
+          appendMessage('system', 'Error: ' + data.error);
+        } else {
+          appendMessage('bot', data.response);
+        }
+
+      } catch (error) {
+        document.getElementById(loadingId).remove();
+        appendMessage('system', 'Error: Failed to reach server.');
+      }
+    }
+
+    function appendMessage(sender, text) {
+      const messagesDiv = document.getElementById('chat-messages');
+      let html = '';
+
+      if (sender === 'user') {
+        html = `
+                <div class="flex justify-end mb-4">
+                    <div class="bg-indigo-600 text-white rounded-lg py-2 px-4 max-w-[80%] rounded-br-none shadow-sm">
+                        ${text}
+                    </div>
+                </div>
+            `;
+      } else if (sender === 'bot') {
+        // Convert simple markdown to HTML (bolding)
+        let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formattedText = formattedText.replace(/\n/g, '<br>');
+
+        html = `
+                <div class="flex justify-start mb-4">
+                    <div class="bg-white border border-gray-200 text-gray-800 rounded-lg py-2 px-4 max-w-[80%] rounded-bl-none shadow-sm">
+                        ${formattedText}
+                    </div>
+                </div>
+            `;
+      } else {
+        html = `
+                <div class="flex justify-center mb-4">
+                    <div class="text-xs text-red-500 italic">
+                        ${text}
+                    </div>
+                </div>
+            `;
+      }
+
+      messagesDiv.insertAdjacentHTML('beforeend', html);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Handle Enter key
+    document.addEventListener("DOMContentLoaded", function () {
+      const input = document.getElementById('chat-input');
+      if (input) {
+        input.addEventListener("keypress", function (event) {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            sendChatMessage();
+          }
+        });
+      }
+    });
+
+    // ==========================================
+    // FEEDBACK FUNCTIONALITY
+    // ==========================================
+    let currentRating = 0;
+
+    function setRating(rating) {
+      currentRating = rating;
+      const stars = document.querySelectorAll('.star-rating');
+      stars.forEach((star, index) => {
+        if (index < rating) {
+          star.classList.remove('text-gray-300');
+          star.classList.add('text-yellow-400');
+        } else {
+          star.classList.add('text-gray-300');
+          star.classList.remove('text-yellow-400');
+        }
+      });
+    }
+
+    async function submitFeedback() {
+      if (currentRating === 0) {
+        alert('Please select a rating star.');
+        return;
+      }
+
+      const comment = document.getElementById('feedback-comment').value;
+      const submitBtn = document.querySelector('button[onclick="submitFeedback()"]');
+
+      // Disable button
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+      try {
+        const response = await fetch('/feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            rating: currentRating,
+            comment: comment,
+            page: window.location.pathname
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          document.getElementById('feedback-form').classList.add('hidden');
+          document.getElementById('feedback-success').classList.remove('hidden');
+        } else {
+          alert('Error: ' + (data.error || 'Failed to submit'));
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Submit Feedback';
+        }
+
+      } catch (error) {
+        console.error('Feedback error:', error);
+        alert('Failed to connect to server.');
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Submit Feedback';
+      }
+    }
+  </script>
+
+  <!-- Chatbot UI -->
+  <div class="fixed bottom-6 right-6 z-50">
+    <!-- Chat Window -->
+    <div id="chat-window"
+      class="hidden bg-white w-80 h-96 rounded-xl shadow-2xl flex flex-col mb-4 overflow-hidden border border-gray-200 transition-all duration-300">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-blue-800 to-slate-900 p-4 text-white flex justify-between items-center">
+        <div class="flex items-center">
+          <i class="fas fa-robot mr-2"></i>
+          <span class="font-bold">ATS Assistant</span>
+        </div>
+        <button onclick="toggleChat()" class="text-white hover:text-gray-200">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
+
+      <!-- Messages -->
+      <div id="chat-messages" class="flex-1 p-4 overflow-y-auto bg-gray-50 text-sm">
+        <div class="flex justify-start mb-4">
+          <div
+            class="bg-white border border-gray-200 text-gray-800 rounded-lg py-2 px-4 max-w-[80%] rounded-bl-none shadow-sm">
+            Hello! I can help you analyze your resume or answer questions about ATS optimization.
+          </div>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="p-3 bg-white border-t border-gray-100">
+        <div class="flex items-center bg-gray-100 rounded-full px-4 py-2">
+          <input type="text" id="chat-input" class="bg-transparent flex-1 focus:outline-none text-sm"
+            placeholder="Type a message...">
+          <button onclick="sendChatMessage()" class="text-classic-accent hover:text-amber-700 ml-2">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggle Button -->
+    <button onclick="toggleChat()"
+      class="btn-classic text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transform transition hover:scale-105">
+      <i id="chat-icon" class="fas fa-comment text-2xl"></i>
+    </button>
+  </div>
+
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>

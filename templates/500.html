@@ -1,0 +1,13 @@
+{% extends "base.html" %} {% block title %}500 - Server Error{% endblock %} {%
+block content %}
+<div class="container mx-auto px-4 py-20 text-center">
+  <i class="fas fa-server text-red-500 text-6xl mb-6"></i>
+  <h1 class="text-4xl font-bold text-gray-800 mb-4">500 - Server Error</h1>
+  <p class="text-xl text-gray-600 mb-8">
+    Something went wrong on our end. Please try again later.
+  </p>
+  <a href="/" class="inline-block btn-classic text-white font-bold py-3 px-6 rounded-lg brand-font">
+    <i class="fas fa-home mr-2"></i>Go Home
+  </a>
+</div>
+{% endblock %}

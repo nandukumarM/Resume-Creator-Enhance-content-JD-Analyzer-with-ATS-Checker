@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Bank Resume</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0.75in;
+        }
+
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            color: #000;
+            background: #fff;
+        }
+
+        .resume-container {
+            max-width: 100%;
+            margin: 0 auto;
+            max-height: 1122px;
+            /* A4 height at 96 DPI constraint */
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 14pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+
+        .name {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12pt;
+            margin-bottom: 5px;
+        }
+
+        .contact-info {
+            margin-bottom: 15px;
+        }
+
+        .contact-info p {
+            margin: 2px 0;
+        }
+
+        .contact-info a {
+            color: #0000EE;
+            /* Standard link blue */
+            text-decoration: underline;
+        }
+
+        .section-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-size: 12pt;
+        }
+
+        .content-block {
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+
+        ul {
+            list-style-type: disc;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        .job-entry {
+            margin-bottom: 15px;
+        }
+
+        .job-details {
+            margin-left: 0;
+        }
+
+        .job-details p {
+            margin: 2px 0;
+            padding-left: 20px;
+            /* Indent to match bullet roughly */
+        }
+
+        /* Match the specific bullet style in image for company */
+        .company-bullet {
+            list-style-type: disc;
+            margin-left: 20px;
+            font-weight: bold;
+            /* Sometimes companies are bolded */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="resume-container">
+        <!-- Header -->
+        <h1>RESUME</h1>
+
+        <!-- Personal Info -->
+        <div class="name">{{ contact_info.name }}</div>
+        <div class="contact-info">
+            <p>Mobile: {{ contact_info.phone }}</p>
+            <p>Email address: <a href="mailto:{{ contact_info.email }}">{{ contact_info.email }}</a></p>
+            {% if contact_info.location and contact_info.location != 'Not Provided' %}
+            <p>Location: {{ contact_info.location }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Objective -->
+        {% if professional_summary %}
+        <div class="section-title">OBJECTIVE:</div>
+        <div class="content-block">
+            {{ professional_summary }}
+        </div>
+        {% endif %}
+
+        <!-- Work Experience -->
+        {% if experience %}
+        <div class="section-title">WORK EXPERIENCE:</div>
+
+        {% for job in experience %}
+        <div class="job-entry">
+            <!-- Company as a list item to match image style -->
+            <ul>
+                <li style="font-weight: normal;">
+                    <strong>{{ job.company }}</strong>
+                    {% if job.client %} (Client - {{ job.client }}){% endif %}
+                </li>
+            </ul>
+
+            <div class="job-details">
+                <p><strong>Designation:</strong> - {{ job.title }}</p>
+                <p><strong>Duration:</strong> {{ job.duration }}</p>
+            </div>
+
+            <!-- Roles and Responsibility -->
+            <!-- The image shows this as a separate header but visually associated with the job. 
+                 If we have multiple jobs, it makes sense to repeat this header or structure it per job.
+                 Based on the image, it looks like a section header. I will put it here. -->
+            <div class="section-title">ROLES AND RESPONSIBILITY:</div>
+            <ul>
+                {% for bullet in job.achievements %}
+                <li>{{ bullet }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Education (If available, strict bank format usually prioritizes experience) -->
+        {% if education %}
+        <div class="section-title">EDUCATION:</div>
+        <ul>
+            {% for edu in education %}
+            <li>
+                <strong>{{ edu.degree }}</strong> - {{ edu.institution }} ({{ edu.year }})
+                {% if edu.score and edu.score != 'N/A' %} | Score: {{ edu.score }}{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <!-- Skills (Mapped from 'erp_and_tools' etc) -->
+        {% if skills and (skills.erp_and_tools or skills.domain_knowledge) %}
+        <div class="section-title">TECHNICAL SKILLS:</div>
+        <ul>
+            {% if skills.erp_and_tools %}
+            <li><strong>ERP & Tools:</strong> {{ skills.erp_and_tools|join(', ') if skills.erp_and_tools is iterable
+                else skills.erp_and_tools }}</li>
+            {% endif %}
+            {% if skills.domain_knowledge %}
+            <li><strong>Domain Knowledge:</strong> {{ skills.domain_knowledge|join(', ') if skills.domain_knowledge is
+                iterable else skills.domain_knowledge }}</li>
+            {% endif %}
+        </ul>
+        {% endif %}
+
+        <!-- Declaration -->
+        <!-- Note: We are programmatically removing "DECLARATION" from input PDF text in the cleaner,
+             but for the *generated* resume, the user might expect it if it's a "Bank Resume" format 
+             which often still requires it in some regions (like India). 
+             However, the user asked to "add all above features", and one feature was "Nuke Declaration".
+             So I will OMIT the declaration to stay consistent with the "ATS Optimization" goal. -->
+    </div>
+</body>
+
+</html>

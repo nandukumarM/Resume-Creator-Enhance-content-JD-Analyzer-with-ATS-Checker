@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Tailored Resume - Resume Creator & ATS Score Checker{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-white mb-2">
+            Tailored Resume
+        </h1>
+        <div class="flex justify-between items-center mb-8">
+            <a href="{{ url_for('create_resume') }}"
+                class="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors">
+                <i class="fas fa-edit mr-2"></i> Edit Resume
+            </a>
+            <div class="relative inline-block text-left">
+                <button onclick="document.getElementById('template-dropdown').classList.toggle('hidden')"
+                    class="btn-classic text-white font-bold py-2 px-6 rounded-lg brand-font">
+                    <i class="fas fa-download mr-2"></i> Download PDF <i class="fas fa-chevron-down ml-2"></i>
+                </button>
+
+                <div id="template-dropdown"
+                    class="hidden absolute right-0 mt-2 w-56 rounded-md shadow-xl bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 z-50">
+                    <div class="py-1" role="menu">
+                        <div
+                            class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">
+                            Select Style
+                        </div>
+                        <a href="{{ url_for('download_generated_pdf', gen_id=gen_id, template='classic') }}"
+                            class="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-blue-600 mr-3"></div>
+                            Classic (Blue)
+                        </a>
+                        <a href="{{ url_for('download_generated_pdf', gen_id=gen_id, template='modern') }}"
+                            class="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-teal-600 mr-3"></div>
+                            Modern (Teal)
+                        </a>
+                        <a href="{{ url_for('download_generated_pdf', gen_id=gen_id, template='creative') }}"
+                            class="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-purple-600 mr-3"></div>
+                            Creative (Purple)
+                        </a>
+                        <a href="{{ url_for('download_generated_pdf', gen_id=gen_id, template='zety') }}"
+                            class="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-gray-800 mr-3"></div>
+                            Professional (Dark Sidebar)
+                        </a>
+                        <a href="{{ url_for('download_generated_pdf', gen_id=gen_id, template='harrison') }}"
+                            class="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-yellow-400 mr-3"></div>
+                            Bold (Yellow Header)
+                        </a>
+                        <a href="{{ url_for('download_generated_pdf', gen_id=gen_id, template='elegant') }}"
+                            class="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-gray-300 mr-3"></div>
+                            Elegant (Gray Box)
+                        </a>
+                        <a href="{{ url_for('download_generated_pdf', gen_id=gen_id, template='bank') }}"
+                            class="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-indigo-900 mr-3"></div>
+                            Bank Resume (ATS Optimized)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 sm:p-12 mb-8 print:shadow-none print:p-0">
+        <!-- Resume Header -->
+        <header class="border-b-2 border-gray-200 dark:border-gray-700 pb-6 mb-6">
+            {% if resume.personal_info %}
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-50 mb-2">{{ resume.personal_info.name }}</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-300">{{ resume.personal_info.contact_info }}</p>
+            {% else %}
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-50 mb-2">Candidate Name</h1>
+            {% endif %}
+        </header>
+
+        <!-- Professional Summary -->
+        {% if resume.summary %}
+        <section class="mb-8">
+            <h2
+                class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">
+                Professional Summary</h2>
+            <p class="text-gray-700 dark:text-gray-300 leading-relaxed">{{ resume.summary }}</p>
+        </section>
+        {% endif %}
+
+        <!-- Skills -->
+        {% if resume.skills %}
+        <section class="mb-8">
+            <h2
+                class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">
+                Skills</h2>
+            {% if resume.skills.technical is defined %}
+            <div class="mb-3">
+                <span class="font-bold text-gray-700 dark:text-gray-300">Technical:</span>
+                <span class="text-gray-700 dark:text-gray-300">{{ resume.skills.technical | join(", ") }}</span>
+            </div>
+            {% endif %}
+            {% if resume.skills.soft is defined %}
+            <div>
+                <span class="font-bold text-gray-700 dark:text-gray-300">Soft Skills:</span>
+                <span class="text-gray-700 dark:text-gray-300">{{ resume.skills.soft | join(", ") }}</span>
+            </div>
+            {% endif %}
+            <!-- Fallback if skills is just a list -->
+            {% if resume.skills is sequence and resume.skills is not mapping %}
+            <p class="text-gray-700 dark:text-gray-300">{{ resume.skills | join(", ") }}</p>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        <!-- Experience -->
+        {% if resume.experience %}
+        <section class="mb-8">
+            <h2
+                class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                Professional Experience</h2>
+            {% for job in resume.experience %}
+            <div class="mb-6 last:mb-0">
+                <div class="flex justify-between items-baseline mb-2">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ job.title }}</h3>
+                    <span class="text-gray-600 dark:text-gray-400 font-medium">{{ job.dates }}</span>
+                </div>
+                <div class="text-lg text-blue-800 dark:text-blue-400 font-semibold mb-2">{{ job.company }}</div>
+                <ul class="list-disc list-outside ml-5 space-y-1 text-gray-700 dark:text-gray-300">
+                    {% for bullet in job.bullets %}
+                    <li>{{ bullet }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <!-- Education -->
+        {% if resume.education %}
+        <section class="mb-8">
+            <h2
+                class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                Education</h2>
+            {% for edu in resume.education %}
+            <div class="mb-4 last:mb-0">
+                <div class="flex justify-between items-baseline">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ edu.school }}</h3>
+                    <span class="text-gray-600 dark:text-gray-400">{{ edu.dates }}</span>
+                </div>
+                <div class="text-gray-700 dark:text-gray-300">{{ edu.degree }}</div>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <!-- Projects -->
+        {% if resume.projects %}
+        <section class="mb-8">
+            <h2
+                class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                Projects</h2>
+            {% for proj in resume.projects %}
+            <div class="mb-4 last:mb-0">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">{{ proj.name }} <span
+                        class="text-sm font-normal text-gray-500">({{ proj.technologies }})</span></h3>
+                <p class="text-gray-700 dark:text-gray-300">{{ proj.description }}</p>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function (event) {
+        const container = document.getElementById('download-container');
+        const dropdown = document.getElementById('template-dropdown');
+        if (container && !container.contains(event.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}JD Analysis Result - Resume Creator & ATS Score Checker{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-white">
+            JD Analysis Result
+        </h1>
+        <a href="/analyze-jd"
+            class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow transition">
+            <i class="fas fa-arrow-left mr-2"></i> Analyze Another
+        </a>
+    </div>
+
+    <!-- Job Title & Summary -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
+        <h2 class="text-2xl font-bold text-blue-800 dark:text-blue-400 mb-2">{{ analysis.job_title }}</h2>
+        <p class="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">{{ analysis.summary }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <!-- Skills -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+                <i class="fas fa-tools text-blue-600 mr-2"></i> Required Skills
+            </h3>
+
+            <div class="mb-4">
+                <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Technical Skills</h4>
+                <div class="flex flex-wrap gap-2">
+                    {% if analysis.skills.technical %}
+                        {% for skill in analysis.skills.technical %}
+                        <span class="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium">{{ skill }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-sm text-gray-500 italic">No technical skills found.</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Soft Skills</h4>
+                <div class="flex flex-wrap gap-2">
+                    {% if analysis.skills.soft %}
+                        {% for skill in analysis.skills.soft %}
+                        <span class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-3 py-1 rounded-full text-sm font-medium">{{ skill }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-sm text-gray-500 italic">No soft skills found.</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Keywords -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+                <i class="fas fa-key text-yellow-500 mr-2"></i> Critical Keywords
+            </h3>
+            <div class="space-y-3">
+                {% if analysis.keywords %}
+                    {% for kw in analysis.keywords %}
+                    <div class="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-2">
+                        <span class="text-gray-700 dark:text-gray-300">{{ kw.keyword }}</span>
+                        {% if kw.importance == 'High' %}
+                        <span class="text-xs font-bold text-red-600 bg-red-100 dark:text-red-300 dark:bg-red-900 px-2 py-1 rounded uppercase">High</span>
+                        {% else %}
+                        <span class="text-xs font-bold text-gray-500 bg-gray-100 dark:text-gray-400 dark:bg-gray-700 px-2 py-1 rounded uppercase">{{ kw.importance }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-gray-500 italic py-4">No critical keywords identified.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Responsibilities -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+                <i class="fas fa-tasks text-purple-500 mr-2"></i> Core Responsibilities
+            </h3>
+            <ul class="list-disc list-outside ml-5 space-y-2 text-gray-700 dark:text-gray-300">
+                {% if analysis.responsibilities %}
+                    {% for item in analysis.responsibilities %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                {% else %}
+                    <li class="list-none text-gray-500 italic">No specific responsibilities extracted.</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <!-- Qualifications & Culture -->
+        <div class="space-y-8">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+                    <i class="fas fa-graduation-cap text-blue-600 mr-2"></i> Qualifications
+                </h3>
+                <ul class="list-disc list-outside ml-5 space-y-2 text-gray-700 dark:text-gray-300">
+                    {% if analysis.qualifications %}
+                        {% for item in analysis.qualifications %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-none text-gray-500 italic">No specific qualifications extracted.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+                    <i class="fas fa-users text-pink-500 mr-2"></i> Culture Fit Clues
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                    {% if analysis.culture_fit_clues %}
+                        {% for clue in analysis.culture_fit_clues %}
+                        <span class="bg-pink-50 text-pink-700 dark:bg-pink-900 dark:text-pink-200 px-3 py-1 rounded-full text-sm border border-pink-100 dark:border-pink-800">{{ clue }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-sm text-gray-500 italic">No culture fit clues found.</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
