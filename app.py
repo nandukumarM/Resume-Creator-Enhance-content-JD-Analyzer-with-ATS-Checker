@@ -7,6 +7,7 @@ and provide ATS scoring, job matching, and improvement suggestions.
 from flask import Flask, render_template, request, jsonify, session, send_file, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 import os
+import sqlite3
 import json
 import uuid
 from datetime import datetime
@@ -72,10 +73,10 @@ try:
 except Exception as e:
     print(f"Directory creation error: {e}")
 
-# Copy bundled JSON databases to dynamic /tmp directory on Vercel
+# Copy bundled JSON databases and SQLite database to dynamic /tmp directory on Vercel
 if IS_VERCEL:
     import shutil
-    for filename in ['users.json', 'admins.json', 'history.json']:
+    for filename in ['users.json', 'admins.json', 'history.json', 'database.db']:
         src = os.path.join('analysis_data', filename)
         dst = os.path.join(app.config['ANALYSIS_FOLDER'], filename)
         if os.path.exists(src) and not os.path.exists(dst):
@@ -86,60 +87,312 @@ if IS_VERCEL:
                 print(f"Failed to copy bundled {filename}: {e}")
 
 # Data Stores
+DATABASE_FILE = os.path.join(app.config['ANALYSIS_FOLDER'], 'database.db')
 USERS_FILE = os.path.join(app.config['ANALYSIS_FOLDER'], 'users.json')
 HISTORY_FILE = os.path.join(app.config['ANALYSIS_FOLDER'], 'history.json')
 ADMINS_FILE = os.path.join(app.config['ANALYSIS_FOLDER'], 'admins.json')
 ADMIN_SECRET_KEY = os.getenv('ADMIN_SECRET_KEY', 'Panda@1718')
 
 
+def get_db_connection():
+    conn = sqlite3.connect(DATABASE_FILE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            user_id TEXT PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT NOT NULL,
+            password TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS admins (
+            admin_id TEXT PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT NOT NULL,
+            password TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS history (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            doc_type TEXT NOT NULL,
+            filename TEXT NOT NULL,
+            title TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS feedback (
+            id TEXT PRIMARY KEY,
+            timestamp TEXT NOT NULL,
+            rating INTEGER NOT NULL,
+            comment TEXT,
+            page TEXT,
+            user_id TEXT,
+            username TEXT
+        )
+    ''')
+    conn.commit()
+
+    # Migrate data from legacy JSON databases if database tables are empty
+    try:
+        # Migrate users
+        cursor.execute("SELECT COUNT(*) FROM users")
+        if cursor.fetchone()[0] == 0 and os.path.exists(USERS_FILE):
+            with open(USERS_FILE, 'r') as f:
+                users_data = json.load(f)
+            for username, data in users_data.items():
+                user_id = data.get('user_id', str(uuid.uuid4()))
+                email = data.get('email', '')
+                password = data.get('password', '')
+                created_at = data.get('created_at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                cursor.execute(
+                    "INSERT OR IGNORE INTO users (user_id, username, email, password, created_at) VALUES (?, ?, ?, ?, ?)",
+                    (user_id, username, email, password, created_at)
+                )
+            print("Successfully migrated users to SQLite.")
+
+        # Migrate admins
+        cursor.execute("SELECT COUNT(*) FROM admins")
+        if cursor.fetchone()[0] == 0 and os.path.exists(ADMINS_FILE):
+            with open(ADMINS_FILE, 'r') as f:
+                admins_data = json.load(f)
+            for username, data in admins_data.items():
+                admin_id = data.get('admin_id', str(uuid.uuid4()))
+                email = data.get('email', '')
+                password = data.get('password', '')
+                created_at = data.get('created_at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                cursor.execute(
+                    "INSERT OR IGNORE INTO admins (admin_id, username, email, password, created_at) VALUES (?, ?, ?, ?, ?)",
+                    (admin_id, username, email, password, created_at)
+                )
+            print("Successfully migrated admins to SQLite.")
+
+        # Migrate history
+        cursor.execute("SELECT COUNT(*) FROM history")
+        if cursor.fetchone()[0] == 0 and os.path.exists(HISTORY_FILE):
+            with open(HISTORY_FILE, 'r') as f:
+                history_data = json.load(f)
+            for entry in history_data:
+                entry_id = entry.get('id', str(uuid.uuid4()))
+                user_id = entry.get('user_id', '')
+                doc_type = entry.get('doc_type', '')
+                filename = entry.get('filename', '')
+                title = entry.get('title', 'Untitled')
+                created_at = entry.get('created_at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                cursor.execute(
+                    "INSERT OR IGNORE INTO history (id, user_id, doc_type, filename, title, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    (entry_id, user_id, doc_type, filename, title, created_at)
+                )
+            print("Successfully migrated history to SQLite.")
+
+        # Migrate feedback
+        cursor.execute("SELECT COUNT(*) FROM feedback")
+        feedback_file = os.path.join(app.config['ANALYSIS_FOLDER'], 'feedback.json')
+        if cursor.fetchone()[0] == 0 and os.path.exists(feedback_file):
+            with open(feedback_file, 'r') as f:
+                feedback_data = json.load(f)
+            for entry in feedback_data:
+                entry_id = entry.get('id', str(uuid.uuid4()))
+                timestamp = entry.get('timestamp', datetime.now().isoformat())
+                rating = entry.get('rating', 5)
+                comment = entry.get('comment', '')
+                page = entry.get('page', 'unknown')
+                user_id = entry.get('user_id')
+                username = entry.get('username')
+                cursor.execute(
+                    "INSERT OR IGNORE INTO feedback (id, timestamp, rating, comment, page, user_id, username) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (entry_id, timestamp, rating, comment, page, user_id, username)
+                )
+            print("Successfully migrated feedback to SQLite.")
+
+        conn.commit()
+    except Exception as e:
+        print(f"Data migration error: {e}")
+    finally:
+        conn.close()
+
+# Initialize Database
+try:
+    init_db()
+except Exception as e:
+    print(f"Database initialization failed: {e}")
+
+
 def load_users():
-    if not os.path.exists(USERS_FILE):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users")
+        rows = cursor.fetchall()
+        conn.close()
+        
+        users = {}
+        for row in rows:
+            users[row['username']] = {
+                'username': row['username'],
+                'email': row['email'],
+                'password': row['password'],
+                'user_id': row['user_id'],
+                'created_at': row['created_at']
+            }
+        return users
+    except Exception as e:
+        print(f"Error loading users: {e}")
         return {}
-    with open(USERS_FILE, 'r') as f:
-        try: return json.load(f)
-        except: return {}
 
 def save_users(users):
-    with open(USERS_FILE, 'w') as f:
-        json.dump(users, f, indent=4)
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        for username, data in users.items():
+            created_at = data.get('created_at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            cursor.execute("SELECT 1 FROM users WHERE username = ?", (username,))
+            exists = cursor.fetchone()
+            if exists:
+                cursor.execute('''
+                    UPDATE users SET email = ?, password = ?, user_id = ? WHERE username = ?
+                ''', (data['email'], data['password'], data['user_id'], username))
+            else:
+                cursor.execute('''
+                    INSERT INTO users (user_id, username, email, password, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (data['user_id'], username, data['email'], data['password'], created_at))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error saving users: {e}")
 
 def load_admins():
-    if not os.path.exists(ADMINS_FILE):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM admins")
+        rows = cursor.fetchall()
+        conn.close()
+        
+        admins = {}
+        for row in rows:
+            admins[row['username']] = {
+                'username': row['username'],
+                'email': row['email'],
+                'password': row['password'],
+                'admin_id': row['admin_id'],
+                'created_at': row['created_at']
+            }
+        return admins
+    except Exception as e:
+        print(f"Error loading admins: {e}")
         return {}
-    with open(ADMINS_FILE, 'r') as f:
-        try: return json.load(f)
-        except: return {}
 
 def save_admins(admins):
-    with open(ADMINS_FILE, 'w') as f:
-        json.dump(admins, f, indent=4)
-
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        for username, data in admins.items():
+            created_at = data.get('created_at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            cursor.execute("SELECT 1 FROM admins WHERE username = ?", (username,))
+            exists = cursor.fetchone()
+            if exists:
+                cursor.execute('''
+                    UPDATE admins SET email = ?, password = ?, admin_id = ? WHERE username = ?
+                ''', (data['email'], data['password'], data['admin_id'], username))
+            else:
+                cursor.execute('''
+                    INSERT INTO admins (admin_id, username, email, password, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (data['admin_id'], username, data['email'], data['password'], created_at))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error saving admins: {e}")
 
 def load_history():
-    if not os.path.exists(HISTORY_FILE):
-        return []
     try:
-        with open(HISTORY_FILE, 'r') as f:
-            return json.load(f)
-    except:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM history ORDER BY created_at DESC")
+        rows = cursor.fetchall()
+        conn.close()
+        
+        history = []
+        for row in rows:
+            history.append({
+                'id': row['id'],
+                'user_id': row['user_id'],
+                'doc_type': row['doc_type'],
+                'filename': row['filename'],
+                'title': row['title'],
+                'created_at': row['created_at']
+            })
+        return history
+    except Exception as e:
+        print(f"Error loading history: {e}")
         return []
 
 def save_history(history):
-    with open(HISTORY_FILE, 'w') as f:
-        json.dump(history, f, indent=4)
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM history")
+        for entry in history:
+            created_at = entry.get('created_at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            cursor.execute('''
+                INSERT INTO history (id, user_id, doc_type, filename, title, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (entry['id'], entry['user_id'], entry['doc_type'], entry['filename'], entry['title'], created_at))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error saving history: {e}")
 
 def add_history_entry(user_id, doc_type, filename, title="Untitled"):
-    history = load_history()
-    entry = {
-        'id': str(uuid.uuid4()),
-        'user_id': user_id,
-        'doc_type': doc_type,
-        'filename': filename,
-        'title': title,
-        'created_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
-    history.insert(0, entry) # Add to beginning
-    save_history(history)
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        entry_id = str(uuid.uuid4())
+        created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute('''
+            INSERT INTO history (id, user_id, doc_type, filename, title, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (entry_id, user_id, doc_type, filename, title, created_at))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error adding history entry: {e}")
+
+def load_feedbacks():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM feedback ORDER BY timestamp DESC")
+        rows = cursor.fetchall()
+        conn.close()
+        
+        feedbacks = []
+        for row in rows:
+            feedbacks.append({
+                'id': row['id'],
+                'timestamp': row['timestamp'],
+                'rating': row['rating'],
+                'comment': row['comment'],
+                'page': row['page'],
+                'user_id': row['user_id'],
+                'username': row['username']
+            })
+        return feedbacks
+    except Exception as e:
+        print(f"Error loading feedbacks: {e}")
+        return []
 
 def login_required(f):
     @wraps(f)
@@ -1737,9 +1990,39 @@ def admin_logout():
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
-    users = load_users()
+    users_dict = load_users()
     all_history = load_history()
-    return render_template('admin_dashboard.html', admin=session['admin'], users=users, history=all_history)
+    feedbacks = load_feedbacks()
+    
+    # Calculate document counts per user
+    user_doc_counts = {}
+    for entry in all_history:
+        uid = entry.get('user_id')
+        user_doc_counts[uid] = user_doc_counts.get(uid, 0) + 1
+        
+    # Inject doc counts and format users as list
+    users_list = []
+    for username, udata in users_dict.items():
+        uid = udata.get('user_id')
+        udata['doc_count'] = user_doc_counts.get(uid, 0)
+        users_list.append(udata)
+        
+    # Sort users by username ascending
+    users_list.sort(key=lambda x: x.get('username', '').lower())
+    
+    # Calculate feedback statistics
+    avg_rating = 0.0
+    if feedbacks:
+        avg_rating = round(sum(f['rating'] for f in feedbacks) / len(feedbacks), 1)
+        
+    return render_template(
+        'admin_dashboard.html', 
+        admin=session['admin'], 
+        users=users_list, 
+        history=all_history, 
+        feedbacks=feedbacks,
+        avg_rating=avg_rating
+    )
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -2296,37 +2579,32 @@ def submit_feedback():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
             
-        feedback_entry = {
-            'id': str(uuid.uuid4()),
-            'timestamp': datetime.now().isoformat(),
-            'rating': data.get('rating'),
-            'comment': data.get('comment', '').strip(),
-            'page': data.get('page', 'unknown')
-        }
+        feedback_id = str(uuid.uuid4())
+        timestamp = datetime.now().isoformat()
+        rating = data.get('rating')
+        comment = data.get('comment', '').strip()
+        page = data.get('page', 'unknown')
         
-        feedback_file = os.path.join(app.config['ANALYSIS_FOLDER'], 'feedback.json')
-        
-        # Load existing feedback
-        existing_feedback = []
-        if os.path.exists(feedback_file):
-            try:
-                with open(feedback_file, 'r') as f:
-                    existing_feedback = json.load(f)
-            except:
-                pass # Start fresh if file is corrupt
-        
-        # Append new feedback
-        existing_feedback.append(feedback_entry)
-        
-        # Save back to file
-        with open(feedback_file, 'w') as f:
-            json.dump(existing_feedback, f, indent=2)
+        user_id = None
+        username = None
+        if 'user' in session:
+            user_id = session['user'].get('user_id')
+            username = session['user'].get('username')
+            
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO feedback (id, timestamp, rating, comment, page, user_id, username)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (feedback_id, timestamp, rating, comment, page, user_id, username))
+        conn.commit()
+        conn.close()
             
         return jsonify({'success': True, 'message': 'Thank you for your feedback!'})
         
     except Exception as e:
         print(f"Feedback error: {e}")
-        return jsonify({'error': 'Failed the submit feedback'}), 500
+        return jsonify({'error': 'Failed to submit feedback'}), 500
 
 
 
