@@ -1,0 +1,213 @@
+{% extends "base.html" %} {% block title %}Resume Tips - Resume Creator & ATS Score Checker{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-6">
+    <a href="/"
+      class="inline-flex items-center text-gray-300 hover:text-white transition-colors bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg backdrop-blur-sm">
+      <i class="fas fa-arrow-left mr-2"></i> Back to Home
+    </a>
+  </div>
+  <h1 class="text-4xl font-bold text-white mb-4 text-center">
+    <i class="fas fa-lightbulb text-yellow-400 mr-2"></i>
+    Resume Tips & Best Practices
+  </h1>
+  <p class="text-center text-gray-200 mb-12">
+    Expert advice to make your resume ATS-friendly and stand out
+  </p>
+
+  <div class="max-w-4xl mx-auto space-y-8">
+    <!-- DO's Section -->
+    <div class="bg-green-900/30 backdrop-blur-sm border border-green-500/50 rounded-lg p-6">
+      <h2 class="text-2xl font-bold text-green-400 mb-4">
+        <i class="fas fa-check-circle mr-2"></i>DO's - Best Practices
+      </h2>
+      <ul class="space-y-3 text-gray-200">
+        <li class="flex items-start">
+          <i class="fas fa-check text-green-400 mt-1 mr-3"></i>
+          <span><strong>Use Standard Fonts:</strong> Stick to Arial, Calibri, or
+            Times New Roman (10-12pt)</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-check text-green-400 mt-1 mr-3"></i>
+          <span><strong>Include Keywords:</strong> Match job description keywords
+            naturally in your resume</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-check text-green-400 mt-1 mr-3"></i>
+          <span><strong>Use Action Verbs:</strong> Start bullet points with strong
+            verbs (Led, Developed, Achieved)</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-check text-green-400 mt-1 mr-3"></i>
+          <span><strong>Quantify Achievements:</strong> Use numbers and percentages
+            (Increased sales by 35%)</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-check text-green-400 mt-1 mr-3"></i>
+          <span><strong>Keep it Concise:</strong> 1-2 pages maximum, focus on
+            relevant experience</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-check text-green-400 mt-1 mr-3"></i>
+          <span><strong>Use Clear Headings:</strong> Professional Summary,
+            Experience, Education, Skills</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-check text-green-400 mt-1 mr-3"></i>
+          <span><strong>Include Contact Info:</strong> Phone, email, LinkedIn,
+            location (city/state)</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-check text-green-400 mt-1 mr-3"></i>
+          <span><strong>Save as PDF:</strong> PDFs preserve formatting across all
+            systems</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- DON'Ts Section -->
+    <div class="bg-red-900/30 backdrop-blur-sm border border-red-500/50 rounded-lg p-6">
+      <h2 class="text-2xl font-bold text-red-400 mb-4">
+        <i class="fas fa-times-circle mr-2"></i>DON'Ts - Common Mistakes
+      </h2>
+      <ul class="space-y-3 text-gray-200">
+        <li class="flex items-start">
+          <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+          <span><strong>Don't Use Tables/Graphics:</strong> ATS systems can't read
+            complex formatting</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+          <span><strong>Don't Use Headers/Footers:</strong> ATS may skip this
+            content entirely</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+          <span><strong>Don't Keyword Stuff:</strong> Keep it natural, don't repeat
+            words excessively</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+          <span><strong>Don't Use Fancy Fonts:</strong> Avoid script, decorative,
+            or unusual fonts</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+          <span><strong>Don't Include Photos:</strong> Unless required, skip
+            profile pictures</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+          <span><strong>Don't Use Abbreviations:</strong> Spell out acronyms first,
+            then use abbreviation</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+          <span><strong>Don't List References:</strong> "Available upon request" is
+            unnecessary</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+          <span><strong>Don't Use Passive Language:</strong> Replace "Responsible
+            for" with action verbs</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ATS Optimization Tips -->
+    <div class="bg-blue-900/30 backdrop-blur-sm border border-blue-500/50 rounded-lg p-6">
+      <h2 class="text-2xl font-bold text-blue-400 mb-4">
+        <i class="fas fa-robot mr-2"></i>ATS Optimization Tips
+      </h2>
+      <ul class="space-y-3 text-gray-200">
+        <li class="flex items-start">
+          <i class="fas fa-arrow-right text-blue-400 mt-1 mr-3"></i>
+          <span><strong>Mirror Job Description:</strong> Use exact phrases from the
+            job posting</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-arrow-right text-blue-400 mt-1 mr-3"></i>
+          <span><strong>Use Standard Section Titles:</strong> Avoid creative
+            headings like "Where I've Been"</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-arrow-right text-blue-400 mt-1 mr-3"></i>
+          <span><strong>Include Both Acronyms & Full Forms:</strong> "Search Engine
+            Optimization (SEO)"</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-arrow-right text-blue-400 mt-1 mr-3"></i>
+          <span><strong>List Skills in Context:</strong> Show how you used skills
+            in experience section</span>
+        </li>
+        <li class="flex items-start">
+          <i class="fas fa-arrow-right text-blue-400 mt-1 mr-3"></i>
+          <span><strong>Use Industry Keywords:</strong> Research common terms in
+            your field</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Power Words Section -->
+    <div class="bg-purple-900/30 backdrop-blur-sm border border-purple-500/50 rounded-lg p-6">
+      <h2 class="text-2xl font-bold text-purple-400 mb-4">
+        <i class="fas fa-bolt mr-2"></i>Power Action Verbs
+      </h2>
+      <div class="grid md:grid-cols-4 gap-4 text-gray-200">
+        <div>
+          <h3 class="font-bold text-purple-300 mb-2">Leadership</h3>
+          <ul class="text-sm space-y-1">
+            <li>Led</li>
+            <li>Managed</li>
+            <li>Directed</li>
+            <li>Coordinated</li>
+            <li>Supervised</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-bold text-purple-300 mb-2">Achievement</h3>
+          <ul class="text-sm space-y-1">
+            <li>Achieved</li>
+            <li>Improved</li>
+            <li>Exceeded</li>
+            <li>Outperformed</li>
+            <li>Accelerated</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-bold text-purple-300 mb-2">Technical</h3>
+          <ul class="text-sm space-y-1">
+            <li>Developed</li>
+            <li>Engineered</li>
+            <li>Programmed</li>
+            <li>Designed</li>
+            <li>Built</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-bold text-purple-300 mb-2">Communication</h3>
+          <ul class="text-sm space-y-1">
+            <li>Presented</li>
+            <li>Negotiated</li>
+            <li>Collaborated</li>
+            <li>Facilitated</li>
+            <li>Consulted</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center bg-gradient-to-r from-blue-700 to-slate-800 text-white rounded-lg p-8">
+      <h2 class="text-2xl font-bold mb-4">Ready to Optimize Your Resume?</h2>
+      <p class="mb-6">
+        Use our AI-powered analyzer to get personalized feedback
+      </p>
+      <a href="/"
+        class="inline-block btn-classic btn-classic-accent text-white font-bold py-3 px-8 rounded-lg brand-font">
+        <i class="fas fa-upload mr-2"></i>Analyze My Resume
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

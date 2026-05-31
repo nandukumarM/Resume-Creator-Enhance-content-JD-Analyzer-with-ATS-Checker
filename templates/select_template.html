@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Select Resume Template - Smart Resume AI{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="mb-6">
+            <a href="/create?doc_type={{ doc_type }}"
+                class="inline-flex items-center text-gray-300 hover:text-white transition-colors bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg backdrop-blur-sm">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Editor
+            </a>
+        </div>
+        <div class="mb-4 text-center">
+            <h1 class="text-3xl font-bold text-white mb-2 brand-font">
+                <i class="fas fa-check-circle text-green-400 mr-2"></i>Review & Export
+            </h1>
+            <p class="text-gray-300">Review your details below, then choose a template to download.</p>
+        </div>
+
+        <!-- Resume Analysis & Preview Dashboard -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+
+            <!-- Profile Card -->
+            <div
+                class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-xl lg:col-span-1">
+                <div class="text-center mb-6">
+                    <div
+                        class="w-24 h-24 bg-gradient-to-r from-amber-400 to-orange-600 rounded-full mx-auto flex items-center justify-center mb-4 shadow-lg">
+                        <span class="text-3xl font-bold text-white">{{ resume_data.personal_info.name[0] }}</span>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white brand-font">{{ resume_data.personal_info.name }}</h2>
+                    <p class="text-amber-400 font-medium">{{ resume_data.personal_info.role or 'Candidate' }}</p>
+                </div>
+
+                <div class="space-y-3 text-sm text-gray-300">
+                    <div class="flex items-center p-3 bg-white/5 rounded-lg">
+                        <i class="fas fa-envelope text-amber-500 w-6"></i>
+                        <span class="truncate">{{ resume_data.personal_info.email }}</span>
+                    </div>
+                    <div class="flex items-center p-3 bg-white/5 rounded-lg">
+                        <i class="fas fa-phone text-amber-500 w-6"></i>
+                        <span>{{ resume_data.personal_info.phone }}</span>
+                    </div>
+                    {% if resume_data.personal_info.links %}
+                    <div class="flex items-center p-3 bg-white/5 rounded-lg">
+                        <i class="fas fa-link text-amber-500 w-6"></i>
+                        <span class="truncate">{{ resume_data.personal_info.links }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-6 pt-6 border-t border-white/10 text-center">
+                    <a href="/create?doc_type={{ doc_type }}"
+                        class="inline-flex items-center text-amber-400 hover:text-amber-300 transition-colors">
+                        <i class="fas fa-edit mr-2"></i> Edit Profile
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Target Role Badge -->
+                {% if resume_data.target_role %}
+                <div
+                    class="bg-gradient-to-r from-purple-900 to-indigo-900 border border-purple-500/30 rounded-xl p-4 flex items-center justify-between shadow-lg">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-purple-500/20 rounded-lg mr-3">
+                            <i class="fas fa-crosshairs text-purple-300 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-purple-200 text-xs font-bold uppercase tracking-wider">Optimized For</p>
+                            <h3 class="text-white font-bold text-lg">{{ resume_data.target_role }}</h3>
+                        </div>
+                    </div>
+                    <span
+                        class="px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
+                        <i class="fas fa-check mr-1"></i> AI Enhanced
+                    </span>
+                </div>
+                {% endif %}
+
+                <!-- Summary Card -->
+                {% if resume_data.summary %}
+                <div
+                    class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
+                    <h3 class="text-lg font-bold text-white mb-3 flex items-center">
+                        <i class="fas fa-user-circle text-amber-500 mr-2"></i> Professional Summary
+                    </h3>
+                    <p class="text-gray-300 leading-relaxed text-sm">
+                        {{ resume_data.summary }}
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- Skills & Experience Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Skills -->
+                    {% if resume_data.skills.technical or resume_data.skills.soft %}
+                    <div class="card bg-white/5 border border-white/10 rounded-xl p-6">
+                        <h3 class="text-white font-bold mb-4 flex items-center">
+                            <i class="fas fa-tools text-blue-400 mr-2"></i> Key Skills
+                        </h3>
+                        <div class="flex flex-wrap gap-2">
+                            {% for skill in resume_data.skills.technical[:6] %}
+                            <span
+                                class="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-xs border border-blue-500/30">{{
+                                skill }}</span>
+                            {% endfor %}
+                            {% for skill in resume_data.skills.soft[:4] %}
+                            <span
+                                class="px-2 py-1 bg-green-500/20 text-green-300 rounded text-xs border border-green-500/30">{{
+                                skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Latest Experience -->
+                    {% if resume_data.experience %}
+                    <div class="card bg-white/5 border border-white/10 rounded-xl p-6">
+                        <h3 class="text-white font-bold mb-4 flex items-center">
+                            <i class="fas fa-briefcase text-orange-400 mr-2"></i> Latest Experience
+                        </h3>
+                        {% set latest = resume_data.experience[0] %}
+                        <div>
+                            <h4 class="text-white font-bold text-sm">{{ latest.title }}</h4>
+                            <p class="text-orange-400 text-xs mb-2">{{ latest.company }}</p>
+                            <p class="text-gray-400 text-xs line-clamp-3">{{ latest.bullets[0] if latest.bullets else ''
+                                }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8 text-center">
+            <h2 class="text-2xl font-bold text-white mb-4 brand-font">
+                <i class="fas fa-file-pdf text-red-400 mr-2"></i>Select Template & Download
+            </h2>
+            <p class="text-gray-300">Clicking a template will immediately generate and download your PDF.</p>
+        </div>
+
+        <form action="/generate-resume" method="POST" id="templateForm">
+            <input type="hidden" name="template_name" id="selectedTemplate" value="modern">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Modern Template (Resume Only) -->
+                {% if doc_type == 'resume' %}
+                <div class="template-card group cursor-pointer relative" onclick="selectTemplate('modern')">
+                    <div
+                        class="absolute inset-0 bg-amber-500/20 rounded-xl transform scale-105 opacity-0 group-hover:opacity-100 transition-all duration-300 border-2 border-amber-500">
+                    </div>
+                    <div
+                        class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-hidden relative z-10 h-full flex flex-col">
+                        <div class="h-48 bg-gray-700 flex items-center justify-center relative overflow-hidden">
+                            <i class="fas fa-columns text-6xl text-teal-400 opacity-80"></i>
+                            <div class="absolute bottom-0 w-full bg-black/50 p-2 text-center text-white text-sm">Two
+                                Column Layout</div>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Modern</h3>
+                                <p class="text-gray-400 text-sm">Clean two-column design with a dark sidebar. Perfect
+                                    for tech and creative roles.</p>
+                            </div>
+                            <button type="button"
+                                class="mt-4 w-full py-2 rounded-lg bg-white/10 hover:bg-amber-500 text-white transition-colors border border-white/20 group-hover:border-amber-500">
+                                Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Elegant Template (CV Only) -->
+                {% if doc_type == 'cv' %}
+                <div class="template-card group cursor-pointer relative" onclick="selectTemplate('elegant')">
+                    <div
+                        class="absolute inset-0 bg-amber-500/20 rounded-xl transform scale-105 opacity-0 group-hover:opacity-100 transition-all duration-300 border-2 border-amber-500">
+                    </div>
+                    <div
+                        class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-hidden relative z-10 h-full flex flex-col">
+                        <div class="h-48 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                            <i class="fas fa-heading text-6xl text-gray-700 opacity-80"></i>
+                            <div class="absolute bottom-0 w-full bg-black/50 p-2 text-center text-white text-sm">Gray
+                                Header & Border</div>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Elegant</h3>
+                                <p class="text-gray-400 text-sm">Sophisticated design with a gray header block. Ideal
+                                    for executive and corporate roles.</p>
+                            </div>
+                            <button type="button"
+                                class="mt-4 w-full py-2 rounded-lg bg-white/10 hover:bg-amber-500 text-white transition-colors border border-white/20 group-hover:border-amber-500">
+                                Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Classy (Zety) Template (Resume Only) -->
+                {% if doc_type == 'resume' %}
+                <div class="template-card group cursor-pointer relative" onclick="selectTemplate('zety')">
+                    <div
+                        class="absolute inset-0 bg-amber-500/20 rounded-xl transform scale-105 opacity-0 group-hover:opacity-100 transition-all duration-300 border-2 border-amber-500">
+                    </div>
+                    <div
+                        class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-hidden relative z-10 h-full flex flex-col">
+                        <div class="h-48 bg-slate-800 flex items-center justify-center relative overflow-hidden">
+                            <div class="w-1/3 h-full bg-slate-900 absolute left-0"></div>
+                            <i class="fas fa-file-alt text-6xl text-white opacity-80 z-10"></i>
+                            <div class="absolute bottom-0 w-full bg-black/50 p-2 text-center text-white text-sm">Dark
+                                Sidebar</div>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Classy</h3>
+                                <p class="text-gray-400 text-sm">High-contrast design with a dark navy sidebar.
+                                    Professional and impactful.</p>
+                            </div>
+                            <button type="button"
+                                class="mt-4 w-full py-2 rounded-lg bg-white/10 hover:bg-amber-500 text-white transition-colors border border-white/20 group-hover:border-amber-500">
+                                Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Professional (Harrison) Template (Resume Only) -->
+                {% if doc_type == 'resume' %}
+                <div class="template-card group cursor-pointer relative" onclick="selectTemplate('harrison')">
+                    <div
+                        class="absolute inset-0 bg-amber-500/20 rounded-xl transform scale-105 opacity-0 group-hover:opacity-100 transition-all duration-300 border-2 border-amber-500">
+                    </div>
+                    <div
+                        class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-hidden relative z-10 h-full flex flex-col">
+                        <div class="h-48 bg-white flex items-center justify-center relative overflow-hidden">
+                            <div class="w-full h-1/3 bg-yellow-400 absolute top-0"></div>
+                            <i class="fas fa-user-tie text-6xl text-black opacity-80 z-10 mt-8"></i>
+                            <div class="absolute bottom-0 w-full bg-black/50 p-2 text-center text-white text-sm">Yellow
+                                Header Accent</div>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Professional</h3>
+                                <p class="text-gray-400 text-sm">Bold yellow header with clean typography. Stands out
+                                    while remaining professional.</p>
+                            </div>
+                            <button type="button"
+                                class="mt-4 w-full py-2 rounded-lg bg-white/10 hover:bg-amber-500 text-white transition-colors border border-white/20 group-hover:border-amber-500">
+                                Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Creative Template (Resume Only) -->
+                {% if doc_type == 'resume' %}
+                <div class="template-card group cursor-pointer relative" onclick="selectTemplate('creative')">
+                    <div
+                        class="absolute inset-0 bg-amber-500/20 rounded-xl transform scale-105 opacity-0 group-hover:opacity-100 transition-all duration-300 border-2 border-amber-500">
+                    </div>
+                    <div
+                        class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-hidden relative z-10 h-full flex flex-col">
+                        <div class="h-48 bg-purple-900 flex items-center justify-center relative overflow-hidden">
+                            <i class="fas fa-paint-brush text-6xl text-purple-300 opacity-80"></i>
+                            <div class="absolute bottom-0 w-full bg-black/50 p-2 text-center text-white text-sm">
+                                Creative Accents</div>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Creative</h3>
+                                <p class="text-gray-400 text-sm">Purple accents and modern headings. Great for design
+                                    and marketing roles.</p>
+                            </div>
+                            <button type="button"
+                                class="mt-4 w-full py-2 rounded-lg bg-white/10 hover:bg-amber-500 text-white transition-colors border border-white/20 group-hover:border-amber-500">
+                                Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Classic Template (CV Only) -->
+                {% if doc_type == 'cv' %}
+                <div class="template-card group cursor-pointer relative" onclick="selectTemplate('classic')">
+                    <div
+                        class="absolute inset-0 bg-amber-500/20 rounded-xl transform scale-105 opacity-0 group-hover:opacity-100 transition-all duration-300 border-2 border-amber-500">
+                    </div>
+                    <div
+                        class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-hidden relative z-10 h-full flex flex-col">
+                        <div class="h-48 bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                            <div class="w-full h-2 bg-blue-600 absolute top-12"></div>
+                            <i class="fas fa-file-invoice text-6xl text-blue-600 opacity-80 z-10"></i>
+                            <div class="absolute bottom-0 w-full bg-black/50 p-2 text-center text-white text-sm">
+                                Traditional Layout</div>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Classic</h3>
+                                <p class="text-gray-400 text-sm">Timeless design with blue accents. Standard and widely
+                                    accepted structure.</p>
+                            </div>
+                            <button type="button"
+                                class="mt-4 w-full py-2 rounded-lg bg-white/10 hover:bg-amber-500 text-white transition-colors border border-white/20 group-hover:border-amber-500">
+                                Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Bank / ATS Template (Resume Only) -->
+                {% if doc_type == 'resume' %}
+                <div class="template-card group cursor-pointer relative" onclick="selectTemplate('bank')">
+                    <div
+                        class="absolute inset-0 bg-amber-500/20 rounded-xl transform scale-105 opacity-0 group-hover:opacity-100 transition-all duration-300 border-2 border-amber-500">
+                    </div>
+                    <div
+                        class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl overflow-hidden relative z-10 h-full flex flex-col">
+                        <div class="h-48 bg-white flex items-center justify-center relative overflow-hidden">
+                            <i class="fas fa-university text-6xl text-green-700 opacity-80"></i>
+                            <div class="absolute bottom-0 w-full bg-black/50 p-2 text-center text-white text-sm">Bank
+                                Standard</div>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Bank Template</h3>
+                                <p class="text-gray-400 text-sm">Official format preferred by banking and financial
+                                    institutions. High ATS compatibility.</p>
+                            </div>
+                            <button type="button"
+                                class="mt-4 w-full py-2 rounded-lg bg-white/10 hover:bg-amber-500 text-white transition-colors border border-white/20 group-hover:border-amber-500">
+                                Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    function selectTemplate(templateName) {
+        document.getElementById('selectedTemplate').value = templateName;
+        document.getElementById('templateForm').submit();
+    }
+</script>
+{% endblock %}
+{% endblock %}

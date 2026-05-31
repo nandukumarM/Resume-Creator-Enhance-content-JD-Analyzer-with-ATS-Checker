@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Resume - Smart Resume AI{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6">
+            <a href="/"
+                class="inline-flex items-center text-gray-300 hover:text-white transition-colors bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg backdrop-blur-sm">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Home
+            </a>
+        </div>
+        <h1 class="text-3xl font-bold text-center text-white mb-8 brand-font">
+            <i class="fas fa-pen-fancy text-amber-400 mr-2"></i>Create Your Resume
+        </h1>
+
+        <form action="/create" method="POST" enctype="multipart/form-data" class="space-y-8" id="createForm">
+            <input type="hidden" name="doc_type" value="{{ doc_type }}">
+
+            <!-- Personal Information -->
+            <div class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 border-b border-white/10 pb-2">Personal Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% if doc_type == 'cv' %}
+                    <div class="md:col-span-2">
+                        <label class="block text-gray-300 mb-2">Profile Photo</label>
+                        <input type="file" name="profile_photo" accept="image/*"
+                            class="w-full bg-white/5 border border-gray-600 rounded px-4 py-2 text-white focus:border-amber-400 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-500 file:text-white hover:file:bg-amber-600">
+                    </div>
+                    {% endif %}
+                    <div>
+                        <label class="block text-gray-300 mb-2">Full Name</label>
+                        <input type="text" name="name" required
+                            value="{{ prefill.personal_info.name if prefill and prefill.personal_info else '' }}"
+                            class="w-full bg-white/5 border border-gray-600 rounded px-4 py-2 text-white focus:border-amber-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2">Email</label>
+                        <input type="email" name="email" required
+                            value="{{ prefill.personal_info.email if prefill and prefill.personal_info else '' }}"
+                            class="w-full bg-white/5 border border-gray-600 rounded px-4 py-2 text-white focus:border-amber-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2">Phone</label>
+                        <input type="tel" name="phone"
+                            value="{{ prefill.personal_info.phone if prefill and prefill.personal_info else '' }}"
+                            class="w-full bg-white/5 border border-gray-600 rounded px-4 py-2 text-white focus:border-amber-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2">LinkedIn / Portfolio URL</label>
+                        <input type="text" name="links"
+                            value="{{ prefill.personal_info.links if prefill and prefill.personal_info else '' }}"
+                            class="w-full bg-white/5 border border-gray-600 rounded px-4 py-2 text-white focus:border-amber-400 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Summary -->
+            <div class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 border-b border-white/10 pb-2">Professional Summary</h2>
+                <textarea name="summary" rows="4"
+                    class="w-full bg-white/5 border border-gray-600 rounded px-4 py-2 text-white focus:border-amber-400 focus:outline-none"
+                    placeholder="Briefly describe your professional background and goals...">{{ prefill.summary if prefill else '' }}</textarea>
+            </div>
+
+            <!-- Experience -->
+            <div class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6">
+                <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                    <h2 class="text-xl font-bold text-white">Experience</h2>
+                    <button type="button" onclick="addExperience()"
+                        class="px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500 rounded hover:bg-amber-500 hover:text-white transition">
+                        <i class="fas fa-plus mr-1"></i> Add
+                    </button>
+                </div>
+                <div id="experience-container" class="space-y-6">
+                    <!-- Dynamic Experience Items will go here -->
+                </div>
+            </div>
+
+            <!-- Education -->
+            <div class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6">
+                <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                    <h2 class="text-xl font-bold text-white">Education</h2>
+                    <button type="button" onclick="addEducation()"
+                        class="px-3 py-1 bg-blue-500/20 text-blue-400 border border-blue-500 rounded hover:bg-blue-500 hover:text-white transition">
+                        <i class="fas fa-plus mr-1"></i> Add
+                    </button>
+                </div>
+                <div id="education-container" class="space-y-4">
+                    <!-- Dynamic Education Items will go here -->
+                </div>
+            </div>
+
+            <!-- Skills -->
+            <div class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 border-b border-white/10 pb-2">Skills</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-300 mb-2">Technical Skills</label>
+                        <input type="text" name="technical_skills"
+                            value="{{ prefill.skills.technical | join(', ') if prefill and prefill.skills and prefill.skills.technical else '' }}"
+                            placeholder="Python, Flask, JavaScript, SQL..."
+                            class="w-full bg-white/5 border border-gray-600 rounded px-4 py-2 text-white focus:border-amber-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2">Soft Skills</label>
+                        <input type="text" name="soft_skills"
+                            value="{{ prefill.skills.soft | join(', ') if prefill and prefill.skills and prefill.skills.soft else '' }}"
+                            placeholder="Leadership, Communication, Teamwork..."
+                            class="w-full bg-white/5 border border-gray-600 rounded px-4 py-2 text-white focus:border-amber-400 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects -->
+            <div class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6">
+                <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                    <h2 class="text-xl font-bold text-white">Projects</h2>
+                    <button type="button" onclick="addProject()"
+                        class="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500 rounded hover:bg-green-500 hover:text-white transition">
+                        <i class="fas fa-plus mr-1"></i> Add
+                    </button>
+                </div>
+                <div id="projects-container" class="space-y-6">
+                    <!-- Dynamic Project Items will go here -->
+                </div>
+            </div>
+
+            <!-- Certifications -->
+            <div class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6">
+                <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                    <h2 class="text-xl font-bold text-white">Certifications</h2>
+                    <button type="button" onclick="addCertification()"
+                        class="px-3 py-1 bg-purple-500/20 text-purple-400 border border-purple-500 rounded hover:bg-purple-500 hover:text-white transition">
+                        <i class="fas fa-plus mr-1"></i> Add
+                    </button>
+                </div>
+                <div id="certifications-container" class="space-y-4">
+                    <!-- Dynamic Certification Items will go here -->
+                </div>
+            </div>
+
+            <!-- Languages & Co-curricular -->
+            <div class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 border-b border-white/10 pb-2">Additional Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-300 mb-2">Languages Known (Comma separated)</label>
+                        <textarea name="languages" rows="3"
+                            class="w-full bg-white/5 border border-gray-600 rounded px-4 py-2 text-white focus:border-amber-400 focus:outline-none"
+                            placeholder="English, Spanish, French..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2">Co-curricular Activities</label>
+                        <textarea name="activities" rows="3"
+                            class="w-full bg-white/5 border border-gray-600 rounded px-4 py-2 text-white focus:border-amber-400 focus:outline-none"
+                            placeholder="Member of Coding Club, Volunteer at..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Career Objective -->
+            <div class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 border-b border-white/10 pb-2">Career Objective</h2>
+                <textarea name="career_objective" rows="3"
+                    class="w-full bg-white/5 border border-gray-600 rounded px-4 py-2 text-white focus:border-amber-400 focus:outline-none"
+                    placeholder="To secure a challenging position..."></textarea>
+            </div>
+
+            <div class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6">
+                <div class="flex items-center">
+                    <input type="checkbox" id="ats_mode" name="ats_mode"
+                        class="w-5 h-5 text-amber-500 rounded bg-gray-700 border-gray-600 focus:ring-amber-500 focus:ring-offset-gray-800">
+                    <label for="ats_mode" class="ml-2 text-white font-bold text-lg">Generate ATS-Optimized Resume
+                        (Banking Format)</label>
+                </div>
+                <p class="text-gray-400 text-sm mt-1 ml-7">Creates a clean, parser-friendly PDF specifically designed
+                    for ATS systems.</p>
+            </div>
+
+            <div class="text-center pt-6 pb-12">
+
+                <button type="submit"
+                    class="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold py-4 px-12 rounded-full shadow-lg hover:scale-105 transition-transform text-xl">
+                    <i class="fas fa-wand-magic-sparkles mr-2"></i> Generate Resume
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<template id="experience-template">
+    <div class="experience-item bg-white/5 p-4 rounded border border-white/10 relative">
+        <button type="button" onclick="this.parentElement.remove()"
+            class="absolute top-2 right-2 text-red-400 hover:text-red-300">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-gray-400 text-sm mb-1">Job Title</label>
+                <input type="text" name="exp_title[]" required
+                    class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm">
+            </div>
+            <div>
+                <label class="block text-gray-400 text-sm mb-1">Company</label>
+                <input type="text" name="exp_company[]" required
+                    class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm">
+            </div>
+            <div>
+                <label class="block text-gray-400 text-sm mb-1">Dates (e.g., 2020 - Present)</label>
+                <input type="text" name="exp_dates[]" required
+                    class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm">
+            </div>
+        </div>
+        <div>
+            <label class="block text-gray-400 text-sm mb-1">Description / Key Achievements</label>
+            <textarea name="exp_desc[]" rows="3"
+                class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm"
+                placeholder="• Led a team of 5 developers...&#10;• Increased revenue by 20%..."></textarea>
+        </div>
+    </div>
+</template>
+
+<template id="education-template">
+    <div class="education-item bg-white/5 p-4 rounded border border-white/10 relative">
+        <button type="button" onclick="this.parentElement.remove()"
+            class="absolute top-2 right-2 text-red-400 hover:text-red-300">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-gray-400 text-sm mb-1">Degree / Certificate</label>
+                <input type="text" name="edu_degree[]" required
+                    class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm">
+            </div>
+            <div>
+                <label class="block text-gray-400 text-sm mb-1">School / University</label>
+                <input type="text" name="edu_school[]" required
+                    class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm">
+            </div>
+            <div class="md:col-span-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-400 text-sm mb-1">Dates</label>
+                        <input type="text" name="edu_dates[]" required
+                            class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 text-sm mb-1">Percentage / CGPA</label>
+                        <input type="text" name="edu_score[]"
+                            class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm"
+                            placeholder="e.g. 85% or 9.0 CGPA">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="project-template">
+    <div class="project-item bg-white/5 p-4 rounded border border-white/10 relative">
+        <button type="button" onclick="this.parentElement.remove()"
+            class="absolute top-2 right-2 text-red-400 hover:text-red-300">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-gray-400 text-sm mb-1">Project Name</label>
+                <input type="text" name="proj_name[]" required
+                    class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm">
+            </div>
+            <div>
+                <label class="block text-gray-400 text-sm mb-1">Technologies Used</label>
+                <input type="text" name="proj_tech[]"
+                    class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm">
+            </div>
+        </div>
+        <div>
+            <label class="block text-gray-400 text-sm mb-1">Description</label>
+            <textarea name="proj_desc[]" rows="2"
+                class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm"></textarea>
+        </div>
+    </div>
+</template>
+
+{% endblock %}
+
+<template id="certification-template">
+    <div class="certification-item bg-white/5 p-4 rounded border border-white/10 relative">
+        <button type="button" onclick="this.parentElement.remove()"
+            class="absolute top-2 right-2 text-red-400 hover:text-red-300">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-gray-400 text-sm mb-1">Certification Name</label>
+                <input type="text" name="cert_name[]" required
+                    class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm">
+            </div>
+            <div>
+                <label class="block text-gray-400 text-sm mb-1">Issuing Authority</label>
+                <input type="text" name="cert_auth[]"
+                    class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm">
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-gray-400 text-sm mb-1">Year</label>
+                <input type="text" name="cert_year[]"
+                    class="w-full bg-black/20 border border-gray-600 rounded px-3 py-1 text-white text-sm">
+            </div>
+        </div>
+    </div>
+</template>
+
+{% block extra_js %}
+<script>
+    function addExperience() {
+        const tpl = document.getElementById('experience-template');
+        const container = document.getElementById('experience-container');
+        const clone = tpl.content.cloneNode(true);
+        container.appendChild(clone);
+    }
+
+    function addEducation() {
+        const tpl = document.getElementById('education-template');
+        const container = document.getElementById('education-container');
+        const clone = tpl.content.cloneNode(true);
+        container.appendChild(clone);
+    }
+
+    function addProject() {
+        const tpl = document.getElementById('project-template');
+        const container = document.getElementById('projects-container');
+        const clone = tpl.content.cloneNode(true);
+        container.appendChild(clone);
+    }
+
+    function addCertification() {
+        const tpl = document.getElementById('certification-template');
+        const container = document.getElementById('certifications-container');
+        const clone = tpl.content.cloneNode(true);
+        container.appendChild(clone);
+    }
+
+    // Add initial empty fields
+    window.addEventListener('DOMContentLoaded', () => {
+        addExperience();
+        addEducation();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Generator - Resume Creator & ATS Score Checker{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100">
+            Automated Resume Generator
+        </h1>
+        <p class="text-center text-gray-600 dark:text-gray-300 mb-8">
+            Upload your base resume and a target job description. AI will rewrite your resume to target the specific
+            job.
+        </p>
+
+        <div class="card bg-white dark:bg-gray-800 rounded-xl shadow-md p-8">
+            <form id="generateForm" class="space-y-6">
+                <!-- Base Resume Upload -->
+                <div>
+                    <label class="block text-gray-700 dark:text-gray-200 font-semibold mb-2">Base Resume (PDF)</label>
+                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer"
+                        id="dropZone">
+                        <input type="file" name="resume" id="resume" class="hidden" accept=".pdf" required>
+                        <div class="space-y-2">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+                            <p class="text-gray-600 dark:text-gray-400">Click to upload or drag and drop</p>
+                            <p class="text-sm text-gray-500" id="fileName">No file selected</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job Description Input -->
+                <div>
+                    <label for="job_description"
+                        class="block text-gray-700 dark:text-gray-200 font-semibold mb-2">Target Job Description</label>
+                    <textarea name="job_description" id="job_description" rows="8"
+                        class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Paste the job description here..." required></textarea>
+                </div>
+
+                <!-- ATS Mode Checkbox -->
+                <div class="flex items-center">
+                    <input id="ats_mode" name="ats_mode" type="checkbox"
+                        class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                    <label for="ats_mode" class="ml-2 block text-gray-700 dark:text-gray-200 text-sm font-bold">
+                        Enable ATS-Optimization Mode (Recommended)
+                    </label>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit"
+                        class="w-full bg-gradient-to-r from-blue-700 to-slate-800 hover:from-blue-800 hover:to-slate-900 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition hover:-translate-y-0.5"
+                        id="generateBtn">
+                        <span id="btnText"><i class="fas fa-magic mr-2"></i> Generate Targeted Resume</span>
+                        <span id="loadingText" class="hidden"><i class="fas fa-spinner fa-spin mr-2"></i>
+                            Generating...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const form = document.getElementById('generateForm');
+    const resumeInput = document.getElementById('resume');
+    const dropZone = document.getElementById('dropZone');
+    const fileName = document.getElementById('fileName');
+    const generateBtn = document.getElementById('generateBtn');
+    const btnText = document.getElementById('btnText');
+    const loadingText = document.getElementById('loadingText');
+
+    // Drag and drop handling
+    dropZone.addEventListener('click', () => resumeInput.click());
+
+    resumeInput.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            fileName.textContent = this.files[0].name;
+            dropZone.classList.add('border-blue-500', 'bg-blue-50');
+        }
+    });
+
+    // Form submission
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const file = resumeInput.files[0];
+        const jobDesc = document.getElementById('job_description').value;
+
+        if (!file || !jobDesc) {
+            alert('Please provide both a resume and job description.');
+            return;
+        }
+
+        // Show loading state
+        generateBtn.disabled = true;
+        generateBtn.classList.add('opacity-75', 'cursor-not-allowed');
+        btnText.classList.add('hidden');
+        loadingText.classList.remove('hidden');
+
+        const formData = new FormData();
+        formData.append('resume', file);
+        formData.append('job_description', jobDesc);
+
+        try {
+            const response = await fetch('/generate', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error occurred'));
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            // Reset loading state
+            generateBtn.disabled = false;
+            generateBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            btnText.classList.remove('hidden');
+            loadingText.classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %}

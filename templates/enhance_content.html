@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Content Enhancer - Resume Creator & ATS Score Checker{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6">
+            <a href="/"
+                class="inline-flex items-center text-gray-300 hover:text-white transition-colors bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg backdrop-blur-sm">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Home
+            </a>
+        </div>
+        <h1 class="text-3xl font-bold text-white mb-4 text-center header-font">
+            <i class="fas fa-magic text-purple-400 mr-2"></i>
+            AI Content Enhancer
+        </h1>
+        <p class="text-center text-gray-200 mb-8">
+            Refine your resume summaries, experience bullets, or cover letters with AI precision.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Input Section -->
+            <div
+                class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6 h-full flex flex-col">
+                <label class="block text-white font-bold mb-3 flex justify-between items-center">
+                    <span>Original Text</span>
+                    <span class="text-xs font-normal text-gray-300 bg-white/10 px-2 py-1 rounded">
+                        <i class="fas fa-clock mr-1"></i>Paste any bullet point or paragraph
+                    </span>
+                </label>
+                <textarea id="originalContent"
+                    class="flex-grow w-full p-4 rounded-lg border border-gray-400/50 bg-white/5 text-white placeholder-gray-400 focus:ring-2 focus:ring-amber-500 font-mono text-sm resize-none"
+                    placeholder="Paste your text here (e.g. a bullet point or summary)..." rows="10"></textarea>
+
+                <div class="mb-4 mt-4">
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">Improvement Style</label>
+                    <select id="style"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-400/50 bg-white/5 text-white focus:ring-2 focus:ring-amber-500">
+                        <option value="Professional" class="text-black">Professional (Formal & Strong)</option>
+                        <option value="Action-Oriented" class="text-black">Action-Oriented (Starts with Verbs)</option>
+                        <option value="Quantified" class="text-black">Quantified (Emphasizes Metrics)</option>
+                        <option value="Creative" class="text-black">Creative (Engaging & Vivid)</option>
+                        <option value="ATS-Friendly" class="text-black">ATS-Friendly (Keyword Focused)</option>
+                        <option value="Concise" class="text-black">Concise (Short & Direct)</option>
+                    </select>
+                </div>
+
+                <div class="flex space-x-4 mt-4">
+                    <button id="enhanceBtn"
+                        class="flex-1 btn-classic text-white font-bold py-3 px-6 rounded-lg brand-font">
+                        <span id="btnText"><i class="fas fa-magic mr-2"></i> Enhance Content</span>
+                        <span id="loadingText" class="hidden"><i class="fas fa-spinner fa-spin mr-2"></i>
+                            Improving...</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Output Section -->
+            <div
+                class="card bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-6 h-full flex flex-col relative">
+                <label class="block text-white font-bold mb-3 flex justify-between items-center">
+                    <span>Enhanced Version</span>
+                    <button id="copyBtn"
+                        class="text-sm btn-classic text-white px-3 py-1 rounded shadow hover:bg-gray-100 transition hidden">
+                        <i class="fas fa-copy mr-1"></i> Copy
+                    </button>
+                </label>
+
+                <div id="resultContainer"
+                    class="flex-grow flex items-center justify-center text-gray-400 italic border-2 border-dashed border-gray-400/50 rounded-lg p-4 bg-white/5">
+                    <p class="text-center">Enhanced content will appear here...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    {% block extra_js %}
+    <script>
+        const enhanceBtn = document.getElementById('enhanceBtn');
+        const originalContent = document.getElementById('originalContent');
+        const styleSelect = document.getElementById('style');
+        const resultContainer = document.getElementById('resultContainer');
+        const btnText = document.getElementById('btnText');
+        const loadingText = document.getElementById('loadingText');
+        const copyBtn = document.getElementById('copyBtn');
+
+        enhanceBtn.addEventListener('click', async () => {
+            const text = originalContent.value.trim();
+            const style = styleSelect.value;
+
+            if (!text) {
+                alert('Please enter some text to enhance.');
+                return;
+            }
+
+            // Loading State
+            enhanceBtn.disabled = true;
+            enhanceBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            btnText.classList.add('hidden');
+            loadingText.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/enhance-content', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: text, style: style })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show Result
+                    resultContainer.classList.remove('items-center', 'justify-center', 'text-gray-400', 'italic', 'border-dashed');
+                    resultContainer.classList.add('text-white', 'text-left');
+                    resultContainer.innerHTML = data.improved.replace(/\n/g, '<br>');
+                    copyBtn.classList.remove('hidden');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+
+            } catch (error) {
+                alert('Request failed: ' + error.message);
+            } finally {
+                // Reset State
+                enhanceBtn.disabled = false;
+                enhanceBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                btnText.classList.remove('hidden');
+                loadingText.classList.add('hidden');
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            const text = resultContainer.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                }, 2000);
+            });
+        });
+    </script>
+    {% endblock %}

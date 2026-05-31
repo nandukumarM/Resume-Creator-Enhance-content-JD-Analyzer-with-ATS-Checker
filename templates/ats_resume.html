@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ATS Optimized Resume</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #000;
+            line-height: 1.4;
+        }
+
+        .resume-container {
+            max-width: 800px;
+            margin: 0 auto;
+            max-height: 1122px;
+            /* A4 height at 96 DPI constraint */
+            overflow: hidden;
+            /* Hide overflow to mimic print cut-off */
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 1px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 24pt;
+            text-transform: uppercase;
+            margin: 0 0 10px 0;
+        }
+
+        .contact-info {
+            font-size: 11pt;
+            margin: 0;
+        }
+
+        section {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            font-size: 14pt;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ddd;
+            /* Subtle separator for readability vs pure ATS */
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        p,
+        li {
+            font-size: 11pt;
+        }
+
+        ul {
+            list-style-type: square;
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .job-entry,
+        .edu-entry {
+            margin-bottom: 15px;
+        }
+
+        .entry-header {
+            display: flex;
+            /* PDF generators might struggle with flex, but giving it a shot for modern ones */
+            justify-content: space-between;
+            font-size: 12pt;
+            margin-bottom: 5px;
+        }
+
+        /* Fallback for xhtml2pdf which doesn't support flex well */
+        .left-col {
+            float: left;
+            width: 70%;
+            font-weight: bold;
+        }
+
+        .right-col {
+            float: right;
+            width: 30%;
+            text-align: right;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        .role-title {
+            font-style: italic;
+            font-size: 11pt;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="resume-container">
+
+        <header>
+            <h1>{{ contact_info.name }}</h1>
+            <p class="contact-info">
+                {{ contact_info.phone }} | {{ contact_info.email }} | {{ contact_info.location }}
+            </p>
+        </header>
+
+        {% if professional_summary %}
+        <section class="summary">
+            <h2>Professional Summary</h2>
+            <p>{{ professional_summary }}</p>
+        </section>
+        {% endif %}
+
+        {% if skills %}
+        <section class="skills">
+            <h2>Core Competencies & Technical Skills</h2>
+            <ul>
+                {% if skills.erp_and_tools %}
+                <li><strong>Software/ERP:</strong> {{ skills.erp_and_tools | join(", ") }}</li>
+                {% endif %}
+
+                {% if skills.productivity %}
+                <li><strong>Tools:</strong> {{ skills.productivity | join(", ") }}</li>
+                {% endif %}
+
+                {% if skills.domain_knowledge %}
+                <li><strong>Domain:</strong> {{ skills.domain_knowledge | join(", ") }}</li>
+                {% endif %}
+            </ul>
+        </section>
+        {% endif %}
+
+        {% if experience %}
+        <section class="experience">
+            <h2>Professional Experience</h2>
+
+            {% for job in experience %}
+            <div class="job-entry">
+                <div class="entry-header">
+                    <span style="font-weight: bold;">{{ job.company }} {% if job.client %}(Client - {{ job.client }}){%
+                        endif %}</span>
+                    <span style="float: right;">{{ job.duration }}</span>
+                </div>
+                <!-- Hack for float clearing -->
+                <div style="clear: both;"></div>
+
+                <p class="role-title">{{ job.title }}</p>
+
+                <ul>
+                    {% for achievement in job.achievements %}
+                    <li>{{ achievement }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        {% if education %}
+        <section class="education">
+            <h2>Education</h2>
+
+            {% for edu in education %}
+            <div class="edu-entry">
+                <h3 style="font-size: 11pt; margin: 0;">{{ edu.degree }}</h3>
+                <p style="font-size: 11pt; margin: 0;">{{ edu.institution }} - {{ edu.score }}, {{ edu.year }}</p>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+    </div>
+</body>
+
+</html>

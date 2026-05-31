@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Smart Resume AI{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-12">
+      <div>
+        <h1 class="text-3xl font-bold text-white brand-font">
+          <i class="fas fa-shield-alt text-red-500 mr-2"></i> Welcome Admin, {{ admin.username }}!
+        </h1>
+        <p class="text-gray-400">System Management Console.</p>
+      </div>
+      <a href="/admin/logout" class="text-red-400 hover:text-red-300 font-medium bg-red-900/30 px-4 py-2 rounded-lg border border-red-500/30">Admin Sign Out</a>
+    </div>
+
+    <!-- Main Options Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+      <!-- SYSTEM STATS CARD -->
+      <div
+        class="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 hover:border-red-500/50 transition-all duration-300 group">
+        <div class="flex items-center mb-6">
+          <div
+            class="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center mr-4 group-hover:bg-red-500 transition-colors">
+            <i class="fas fa-users text-2xl text-red-400 group-hover:text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-white">System Users</h2>
+            <p class="text-gray-400 text-sm">Total registered accounts</p>
+          </div>
+        </div>
+
+        <div class="space-y-4 text-center">
+            <div class="text-6xl font-extrabold text-red-400">{{ users|length }}</div>
+            <p class="text-gray-300">Total Users</p>
+        </div>
+      </div>
+
+      <!-- SYSTEM HISTORY CARD -->
+      <div
+        class="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 hover:border-purple-500/50 transition-all duration-300 group">
+        <div class="flex items-center mb-6">
+          <div
+            class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mr-4 group-hover:bg-purple-500 transition-colors">
+            <i class="fas fa-history text-2xl text-purple-400 group-hover:text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-white">System Activity</h2>
+            <p class="text-gray-400 text-sm">Total documents generated</p>
+          </div>
+        </div>
+
+        <div class="space-y-4 text-center">
+            <div class="text-6xl font-extrabold text-purple-400">{{ history|length }}</div>
+            <p class="text-gray-300">Documents Processed</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
